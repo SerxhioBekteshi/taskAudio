@@ -1,8 +1,51 @@
 <template>
-  <div>HELLO WORLD FROM TASK</div>
-  <div>
-    <input type="file" @change="handleFileUpload" />
-    <button @click="uploadFile">Upload</button>
+  <div
+    style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 80vh;
+    "
+  >
+    <div>
+      <!-- <div class="flex flex-column gap-3">
+        <div>
+          <input type="file" @change="handleFileSelection" />
+          <button @click="uploadFile">Upload</button>
+        </div>
+        <div className="flex gap-3">
+          <div v-if="blob">
+            <audio controls>
+              <source :src="blob" :type="blobType" />
+              Your browser does not support the audio tag.
+            </audio>
+          </div>
+        </div>
+      </div> -->
+
+      <FileUpload
+        mode="advanced"
+        @select="handleFileUploadSelection($event)"
+        :multiple="false"
+        @uploader="uploadFile"
+        accept="audio/*"
+        :custom-upload="true"
+        @error="handleError"
+        :showCancelButton="false"
+        :maxFileSize="6000000"
+      >
+        <template #content>
+          <div className="flex gap-3">
+            <div v-if="blob">
+              <audio controls>
+                <source :src="blob" :type="blobType" />
+                Your browser does not support the audio tag.
+              </audio>
+            </div>
+          </div>
+        </template>
+      </FileUpload>
+    </div>
   </div>
 </template>
 
@@ -10,31 +53,43 @@
 import { defineComponent, ref } from "vue";
 import ort, { env } from "onnxruntime-web";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-
-// env.wasm.wasmPaths = {
-//   "ort-wasm.wasm": "node_modules/onnxruntime-web/dist/ort-wasm.wasm",
-//   // "ort-wasm-simd.wasm": "node_modules/onnxruntime-web/dist/ort-wasm-simd.wasm",
-//   "ort-wasm-threaded.wasm":
-//     "node_modules/onnxruntime-web/dist/ort-wasm-threaded.wasm",
-// };
+import FileUpload from "primevue/fileupload";
+import { useToast } from "primevue/usetoast";
 
 export default defineComponent({
   name: "Task Page",
-  components: {},
+  components: { FileUpload },
   setup() {
-    const file = ref<any>();
+    const file = ref<File | null>(null);
     const encodedFile = ref<any>();
+    const toast = useToast();
+    const blob = ref<string | null>(null);
+    const blobType = ref<string | undefined>();
 
     const ffmpeg = new FFmpeg();
 
-    const handleFileUpload = (event: any) => {
-      file.value = event.target.files[0];
+    const handleFileSelection = (event: Event) => {
+      const input = event.target as HTMLInputElement;
+      if (input.files && input.files.length > 0) {
+        const selectedFile = input.files[0];
+        file.value = selectedFile;
+        blob.value = URL.createObjectURL(selectedFile);
+        blobType.value = selectedFile.type;
+      }
+    };
+
+    const handleFileUploadSelection = (event: any) => {
+      if (event.files && event.files.length > 0) {
+        const selectedFile = event.files[0];
+        file.value = selectedFile;
+        blob.value = URL.createObjectURL(selectedFile);
+        blobType.value = selectedFile.type;
+      }
     };
 
     const loadFFmpeg = async () => {
       if (!ffmpeg.loaded) {
         console.log("FFmpeg loaded.");
-
         await ffmpeg.load();
       }
     };
@@ -42,8 +97,8 @@ export default defineComponent({
     const uploadFile = async () => {
       if (!file.value) return;
 
-      const formData = new FormData();
-      formData.append("file", file.value);
+      // const formData = new FormData();
+      // formData.append("file", file.value);
 
       try {
         const audioBuffer = await convertTo24kHz(file.value);
@@ -93,7 +148,7 @@ export default defineComponent({
 
         console.log(output, "OUTPUT");
 
-        return new Blob([output], { type: "audio/mpeg" });
+        return new Blob([output], { type: "audio/*" });
       } catch (error) {
         console.error("Error during FFmpeg processing:", error);
       }
@@ -105,7 +160,10 @@ export default defineComponent({
     const encodeWithEnCodec = async (audioBuffer: any) => {
       try {
         const session = await ort.InferenceSession.create(
-          "./models/model.onnx"
+          "/models/model.onnx",
+          {
+            executionProviders: ["webgl", "wasm"],
+          }
         );
 
         console.log(session, "SESSION");
@@ -114,7 +172,11 @@ export default defineComponent({
           new Float32Array(audioBuffer)
         );
 
-        const output = await session.run({ input: inputTensor });
+        // const output = await session.run({ input: inputTensor });
+
+        const inputName = session.inputNames[0];
+        const output = await session.run({ [inputName]: inputTensor });
+
         return output;
       } catch (Error) {
         console.log(Error, "ERROR");
@@ -135,12 +197,25 @@ export default defineComponent({
       console.log(result, "RESULT");
     };
 
+    const handleError = (event: any) => {
+      toast.add({
+        life: 3000,
+        detail: "awd",
+        severity: "error",
+        summary: "error image custom",
+      });
+    };
+
     return {
-      handleFileUpload,
+      handleFileSelection,
       uploadFile,
       convertTo24kHz,
       encodeWithEnCodec,
       uploadEncodedAudio,
+      handleError,
+      handleFileUploadSelection,
+      blob,
+      blobType,
     };
   },
 });

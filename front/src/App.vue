@@ -1,7 +1,5 @@
 <template>
   <router-view />
-  <div>HELLO WORLD?</div>
-  <!-- <Toast /> -->
 </template>
 
 <script lang="ts">
