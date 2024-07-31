@@ -1,0 +1,9 @@
+#dependecies
+node_modules
+*.config
+
+.vscode/*
+!.vscode/launch.json
+
+.env.development
+.env.production
