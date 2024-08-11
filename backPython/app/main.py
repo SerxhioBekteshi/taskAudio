@@ -11,7 +11,7 @@ app = FastAPI()
 async def test():
     try:
         print("TEST") 
-        return JSONResponse(content={"message": "File processed and saved."})
+        return JSONResponse(content={"message": "Ok"})
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
@@ -20,9 +20,9 @@ async def test():
 async def upload_file(file: UploadFile = File(...)):
     try:
 
-        contents = await file.read()
+        fileContent = await file.read()
 
-        audio = AudioSegment.from_file(io.BytesIO(contents), format="wav")
+        audio = AudioSegment.from_file(io.BytesIO(fileContent), format="wav")
         decoded_audio = decode_with_encodec(audio)
 
         output_io = io.BytesIO()
