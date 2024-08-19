@@ -35,7 +35,7 @@ async def upload_file(file: UploadFile = File(...)):
 
 def decode_with_encodec(audio):
 
-    session = ort.InferenceSession("models/model_encodec.onnx")
+    session = ort.InferenceSession("models/encodec_model.onnx")
 
     samples = np.array(audio.get_array_of_samples(), dtype=np.float32)
 
