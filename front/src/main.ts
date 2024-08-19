@@ -23,6 +23,7 @@ async function initializeApp() {
   });
   app.use(ToastService);
   app.mount("#app");
+  router.push('/task');
 }
 
 initializeApp();

@@ -157,19 +157,21 @@ export default defineComponent({
       // return output.buffer;
     };
 
+
     const encodeWithEnCodec = async (audioBuffer: any) => {
       try {
         const session = await ort.InferenceSession.create(
-          "/models/model.onnx",
+          "/models/encodec_model.onnx",
           {
             executionProviders: ["webgl", "wasm"],
           }
         );
 
-        console.log(session, "SESSION");
+        console.log(session, "SESSION")
+
         const inputTensor = new ort.Tensor(
           "float32",
-          new Float32Array(audioBuffer)
+          new Float32Array(audioBuffer), [1, audioBuffer.byteLength]
         );
 
         // const output = await session.run({ input: inputTensor });
@@ -200,7 +202,7 @@ export default defineComponent({
     const handleError = (event: any) => {
       toast.add({
         life: 3000,
-        detail: "awd",
+        detail: "test",
         severity: "error",
         summary: "error image custom",
       });
