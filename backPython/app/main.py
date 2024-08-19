@@ -31,10 +31,11 @@ async def upload_file(file: UploadFile = File(...)):
         return JSONResponse(content={"message": "File processed and saved."})
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
+      
 
 def decode_with_encodec(audio):
 
-    session = ort.InferenceSession("models/encodec.onnx")
+    session = ort.InferenceSession("models/model_encodec.onnx")
 
     samples = np.array(audio.get_array_of_samples(), dtype=np.float32)
 
