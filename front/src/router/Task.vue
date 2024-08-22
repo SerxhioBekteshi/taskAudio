@@ -56,6 +56,11 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import FileUpload from "primevue/fileupload";
 import { useToast } from "primevue/usetoast";
 
+ort.env.wasm.wasmPaths = {
+  'ort-wasm.wasm': '/public/ort-wasm.wasm',
+  'ort-wasm-simd.wasm': '/public/ort-wasm-simd.wasm',
+  'ort-wasm-threaded.wasm': '/public/ort-wasm-threaded.wasm',
+} 
 export default defineComponent({
   name: "Task Page",
   components: { FileUpload },
@@ -160,8 +165,9 @@ export default defineComponent({
 
     const encodeWithEnCodec = async (audioBuffer: any) => {
       try {
+
         const session = await ort.InferenceSession.create(
-          "/models/encodec_model.onnx",
+          "/models/test.onnx",
           {
             executionProviders: ["webgl", "wasm"],
           }
